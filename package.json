@@ -1,0 +1,14 @@
+{
+  "name": "talent-orbit-ats",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "lint": "echo \"no lint yet\"",
+    "test": "echo \"no tests yet\"",
+    "build": "echo \"no build yet\""
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "pnpm@10.24.0"
+}
