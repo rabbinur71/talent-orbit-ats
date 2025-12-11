@@ -30,3 +30,5 @@ jobs:
       - name: Build all apps
         run: pnpm build
 
+      - name: Validate docker-compose
+        run: docker compose -f docker-compose.yml config
