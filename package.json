@@ -3,9 +3,9 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "lint": "echo \"no lint yet\"",
-    "test": "echo \"no tests yet\"",
-    "build": "echo \"no build yet\""
+    "lint": "pnpm --filter gateway lint",
+    "test": "pnpm --filter gateway test -- --runInBand",
+    "build": "pnpm --filter gateway build"
   },
   "engines": {
     "node": ">=20.0.0"

@@ -13,8 +13,18 @@ services:
       - "5433:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
-      # Shared volume for storing resumes (will be used by app later)
       - resumes:/var/lib/talent-orbit-ats/resumes
+
+  gateway:
+    build: ./backend/gateway
+    container_name: talent-orbit-ats-gateway
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      PORT: 3000
+    ports:
+      - "3000:3000"
 
 volumes:
   db_data:

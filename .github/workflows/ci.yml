@@ -24,6 +24,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Lint
+        run: pnpm lint
+
       - name: Run tests
         run: pnpm test
 
@@ -32,3 +35,6 @@ jobs:
 
       - name: Validate docker-compose
         run: docker compose -f docker-compose.yml config
+
+      - name: Build gateway Docker image
+        run: docker build -t talent-orbit-ats-gateway ./backend/gateway
