@@ -26,6 +26,8 @@ jobs:
 
       - name: Lint
         run: pnpm lint
+        env:
+          DATABASE_URL: postgresql://user:pass@localhost:5432/db
 
       - name: Run tests
         run: pnpm test
