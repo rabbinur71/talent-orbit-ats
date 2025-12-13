@@ -15,14 +15,29 @@ services:
       - db_data:/var/lib/postgresql/data
       - resumes:/var/lib/talent-orbit-ats/resumes
 
+  auth:
+    build: ./backend/auth
+    container_name: talent-orbit-ats-auth
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      PORT: 3001
+      JWT_SECRET: dev_secret_change_me
+      DATABASE_URL: postgresql://talentorbit:talentorbit@db:5432/talentorbit?schema=public
+    ports:
+      - "3001:3001"
+
   gateway:
     build: ./backend/gateway
     container_name: talent-orbit-ats-gateway
     restart: unless-stopped
     depends_on:
       - db
+      - auth
     environment:
       PORT: 3000
+      AUTH_SERVICE_URL: http://auth:3001
     ports:
       - "3000:3000"
 

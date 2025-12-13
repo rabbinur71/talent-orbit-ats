@@ -38,3 +38,6 @@ jobs:
 
       - name: Build gateway Docker image
         run: docker build -t talent-orbit-ats-gateway ./backend/gateway
+
+      - name: Build auth Docker image
+        run: docker build -t talent-orbit-ats-auth ./backend/auth
