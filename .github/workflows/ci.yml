@@ -34,6 +34,8 @@ jobs:
 
       - name: Build all apps
         run: pnpm build
+        env:
+          DATABASE_URL: postgresql://user:pass@localhost:5432/db
 
       - name: Validate docker-compose
         run: docker compose -f docker-compose.yml config
@@ -43,3 +45,6 @@ jobs:
 
       - name: Build auth Docker image
         run: docker build -t talent-orbit-ats-auth ./backend/auth
+
+      - name: Build jobs Docker image
+        run: docker build -t talent-orbit-ats-jobs ./backend/jobs

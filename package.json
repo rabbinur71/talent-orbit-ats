@@ -3,9 +3,9 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "lint": "pnpm --filter gateway lint && pnpm --filter auth lint",
-    "test": "pnpm --filter gateway test -- --runInBand && pnpm --filter auth test",
-    "build": "pnpm --filter gateway build && pnpm --filter auth build"
+    "lint": "pnpm --filter gateway lint && pnpm --filter auth lint && pnpm --filter jobs lint",
+    "test": "pnpm --filter gateway test -- --runInBand && pnpm --filter auth test && pnpm --filter jobs test",
+    "build": "pnpm --filter gateway build && pnpm --filter auth build && pnpm --filter jobs build"
   },
   "engines": {
     "node": ">=20.0.0"
