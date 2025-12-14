@@ -48,3 +48,6 @@ jobs:
 
       - name: Build jobs Docker image
         run: docker build -t talent-orbit-ats-jobs ./backend/jobs
+
+      - name: Build applications Docker image
+        run: docker build -t talent-orbit-ats-applications ./backend/applications

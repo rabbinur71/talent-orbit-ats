@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ApplicationStatus {
+  APPLIED
+  SCREENED
+  INTERVIEWED
+  OFFERED
+  HIRED
+  REJECTED
+}
+
+model Application {
+  id              String            @id @default(uuid())
+  jobId           String
+
+  name            String
+  email           String
+  phone           String
+  note            String?
+
+  status          ApplicationStatus @default(APPLIED)
+
+  resumePath      String
+  resumeFilename  String
+  resumeSizeBytes Int
+  resumeMimeType  String
+
+  publicToken     String            @unique
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([jobId])
+  @@index([status])
+}

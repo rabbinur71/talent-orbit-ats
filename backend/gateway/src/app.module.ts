@@ -4,10 +4,16 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthProxyController } from './proxy/auth-proxy.controller';
 import { JobsProxyController } from './proxy/jobs-proxy.controller';
+import { ApplicationsProxyController } from './proxy/applications-proxy.controller';
 
 @Module({
   imports: [HttpModule],
-  controllers: [AppController, AuthProxyController, JobsProxyController],
+  controllers: [
+    AppController,
+    AuthProxyController,
+    JobsProxyController,
+    ApplicationsProxyController,
+  ],
   providers: [AppService],
 })
 export class AppModule {}

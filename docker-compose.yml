@@ -38,6 +38,21 @@ services:
     ports:
       - "3002:3002"
 
+  applications:
+    build: ./backend/applications
+    container_name: talent-orbit-ats-applications
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      PORT: 3003
+      UPLOAD_DIR: /app/uploads
+      DATABASE_URL: postgresql://talentorbit:talentorbit@db:5432/talentorbit?schema=public
+    volumes:
+      - resumes:/app/uploads
+    ports:
+      - "3003:3003"
+
   gateway:
     build: ./backend/gateway
     container_name: talent-orbit-ats-gateway
@@ -46,10 +61,12 @@ services:
       - db
       - auth
       - jobs
+      - applications
     environment:
       PORT: 3000
       AUTH_SERVICE_URL: http://auth:3001
       JOBS_SERVICE_URL: http://jobs:3002
+      APPLICATIONS_SERVICE_URL: http://applications:3003
     ports:
       - "3000:3000"
 
