@@ -27,7 +27,7 @@ export default function RootLayout(props: { children: ReactNode }) {
                   Jobs
                 </Link>
                 <Link
-                  href="/recruiter/login"
+                  href="/recruiter"
                   className="rounded-lg border border-neutral-200 px-3 py-1.5 text-neutral-800 hover:bg-neutral-50"
                 >
                   Recruiter
