@@ -4,11 +4,18 @@ import {
   CreateJobInputSchema,
   JobsListSchema,
   RecruiterMeSchema,
+  JobSchema,
   JobCreateResponseSchema,
+  CreateApplicationInputSchema,
+  ApplicationPublicSchema,
+  StatusLookupSchema,
   type AuthLoginResponse,
   type CreateJobInput,
   type Job,
   type RecruiterMe,
+  type CreateApplicationInput,
+  type ApplicationPublic,
+  type StatusLookup,
 } from "./types";
 
 type JobCreateResponse = z.infer<typeof JobCreateResponseSchema>;
@@ -29,9 +36,7 @@ async function fetchJson<TSchema extends z.ZodTypeAny>(args: {
   body?: unknown;
   schema: TSchema;
 }): Promise<z.infer<TSchema>> {
-  const headers: Record<string, string> = {
-    Accept: "application/json",
-  };
+  const headers: Record<string, string> = { Accept: "application/json" };
 
   if (args.body !== undefined) headers["Content-Type"] = "application/json";
   if (args.token) headers["Authorization"] = `Bearer ${args.token}`;
@@ -40,6 +45,27 @@ async function fetchJson<TSchema extends z.ZodTypeAny>(args: {
     method: args.method ?? "GET",
     headers,
     body: args.body === undefined ? undefined : JSON.stringify(args.body),
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Request failed (${res.status}): ${text}`);
+  }
+
+  const data: unknown = await res.json();
+  return args.schema.parse(data);
+}
+
+async function fetchJsonMultipart<TSchema extends z.ZodTypeAny>(args: {
+  url: string;
+  method: "POST";
+  form: FormData;
+  schema: TSchema;
+}): Promise<z.infer<TSchema>> {
+  const res = await fetch(args.url, {
+    method: args.method,
+    body: args.form,
     cache: "no-store",
   });
 
@@ -66,7 +92,7 @@ export async function loginRecruiter(
   });
 }
 
-/** Recruiter profile (only use if your backend supports it reliably) */
+/** Recruiter profile (optional usage) */
 export async function getRecruiterMe(token: string): Promise<RecruiterMe> {
   const base = getApiBase();
   return fetchJson({
@@ -87,9 +113,19 @@ export async function getJobs(): Promise<Job[]> {
   });
 }
 
+/** Job detail (public) */
+export async function getJob(id: string): Promise<Job> {
+  const base = getApiBase();
+  return fetchJson({
+    url: `${base}/jobs/${encodeURIComponent(id)}`,
+    method: "GET",
+    schema: JobSchema,
+  });
+}
+
 /**
  * Create job (requires Bearer token)
- * NOTE: create endpoint may omit createdAt/updatedAt in response, so return JobCreateResponse
+ * create endpoint may omit createdAt/updatedAt; return JobCreateResponse
  */
 export async function createJob(
   token: string,
@@ -111,5 +147,54 @@ export async function createJob(
     token,
     body,
     schema: JobCreateResponseSchema,
+  });
+}
+
+/**
+ * Candidate: create application (multipart)
+ * Gateway expects: jobId, name, email, phone, note?, resume(file)
+ */
+export async function createApplication(args: {
+  input: CreateApplicationInput;
+  resume: File;
+}): Promise<ApplicationPublic> {
+  const base = getApiBase();
+  const validated = CreateApplicationInputSchema.parse(args.input);
+
+  if (!(args.resume instanceof File)) {
+    throw new Error("Resume file is required");
+  }
+  if (args.resume.size <= 0) {
+    throw new Error("Resume file is empty");
+  }
+  if (args.resume.size > 10 * 1024 * 1024) {
+    throw new Error("Resume file is too large (max 10MB)");
+  }
+
+  const form = new FormData();
+  form.append("jobId", validated.jobId);
+  form.append("name", validated.name);
+  form.append("email", validated.email);
+  form.append("phone", validated.phone);
+  if (validated.note) form.append("note", validated.note);
+  form.append("resume", args.resume, args.resume.name);
+
+  return fetchJsonMultipart({
+    url: `${base}/applications`,
+    method: "POST",
+    form,
+    schema: ApplicationPublicSchema,
+  });
+}
+
+/** Candidate: status lookup by public token */
+export async function getApplicationStatus(
+  token: string
+): Promise<StatusLookup> {
+  const base = getApiBase();
+  return fetchJson({
+    url: `${base}/applications/status/${encodeURIComponent(token)}`,
+    method: "GET",
+    schema: StatusLookupSchema,
   });
 }
