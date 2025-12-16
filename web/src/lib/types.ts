@@ -6,7 +6,6 @@ import { z } from "zod";
 export const AuthLoginResponseSchema = z.object({
   access_token: z.string().min(1),
 });
-
 export type AuthLoginResponse = z.infer<typeof AuthLoginResponseSchema>;
 
 export const RecruiterMeSchema = z.object({
@@ -15,7 +14,6 @@ export const RecruiterMeSchema = z.object({
   name: z.string(),
   createdAt: z.string(),
 });
-
 export type RecruiterMe = z.infer<typeof RecruiterMeSchema>;
 
 /**
@@ -37,7 +35,6 @@ export const JobSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
 });
-
 export type Job = z.infer<typeof JobSchema>;
 
 export const JobsListSchema = z.array(JobSchema);
@@ -48,7 +45,6 @@ export const CreateJobInputSchema = z.object({
   location: z.string().optional(),
   department: z.string().optional(),
 });
-
 export type CreateJobInput = z.infer<typeof CreateJobInputSchema>;
 
 export const JobCreateResponseSchema = JobSchema.extend({
@@ -67,9 +63,9 @@ export const ApplicationStatusSchema = z.union([
   z.literal("HIRED"),
   z.literal("REJECTED"),
 ]);
-
 export type ApplicationStatus = z.infer<typeof ApplicationStatusSchema>;
 
+/** Candidate create response (public) */
 export const ApplicationPublicSchema = z.object({
   id: z.string(),
   jobId: z.string(),
@@ -81,20 +77,15 @@ export const ApplicationPublicSchema = z.object({
   publicToken: z.string().min(1),
   createdAt: z.string(),
 });
-
 export type ApplicationPublic = z.infer<typeof ApplicationPublicSchema>;
 
-/**
- * This matches what your applications service actually returns for token lookup:
- * { publicToken, status, jobId, createdAt }
- */
+/** Candidate status lookup */
 export const StatusLookupSchema = z.object({
   publicToken: z.string().min(1),
   status: ApplicationStatusSchema,
   jobId: z.string(),
   createdAt: z.string(),
 });
-
 export type StatusLookup = z.infer<typeof StatusLookupSchema>;
 
 export const CreateApplicationInputSchema = z.object({
@@ -104,7 +95,40 @@ export const CreateApplicationInputSchema = z.object({
   phone: z.string().min(6),
   note: z.string().optional(),
 });
-
 export type CreateApplicationInput = z.infer<
   typeof CreateApplicationInputSchema
+>;
+
+/**
+ * Recruiter: list applications for a job
+ * Backend may return a subset; we accept extra fields too.
+ */
+export const RecruiterApplicationSchema = z
+  .object({
+    id: z.string(),
+    jobId: z.string(),
+    name: z.string(),
+    email: z.string().email(),
+    status: ApplicationStatusSchema,
+
+    phone: z.string().optional(),
+    note: z.string().nullable().optional(),
+
+    createdAt: z.string().optional(),
+    updatedAt: z.string().optional(),
+    publicToken: z.string().optional(),
+  })
+  .passthrough();
+
+export type RecruiterApplication = z.infer<typeof RecruiterApplicationSchema>;
+
+export const RecruiterApplicationsListSchema = z.array(
+  RecruiterApplicationSchema
+);
+
+export const UpdateApplicationStatusInputSchema = z.object({
+  status: ApplicationStatusSchema,
+});
+export type UpdateApplicationStatusInput = z.infer<
+  typeof UpdateApplicationStatusInputSchema
 >;

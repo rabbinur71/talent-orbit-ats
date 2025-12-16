@@ -9,6 +9,9 @@ import {
   CreateApplicationInputSchema,
   ApplicationPublicSchema,
   StatusLookupSchema,
+  RecruiterApplicationsListSchema,
+  RecruiterApplicationSchema,
+  UpdateApplicationStatusInputSchema,
   type AuthLoginResponse,
   type CreateJobInput,
   type Job,
@@ -16,6 +19,8 @@ import {
   type CreateApplicationInput,
   type ApplicationPublic,
   type StatusLookup,
+  type RecruiterApplication,
+  type ApplicationStatus,
 } from "./types";
 
 type JobCreateResponse = z.infer<typeof JobCreateResponseSchema>;
@@ -37,7 +42,6 @@ async function fetchJson<TSchema extends z.ZodTypeAny>(args: {
   schema: TSchema;
 }): Promise<z.infer<TSchema>> {
   const headers: Record<string, string> = { Accept: "application/json" };
-
   if (args.body !== undefined) headers["Content-Type"] = "application/json";
   if (args.token) headers["Authorization"] = `Bearer ${args.token}`;
 
@@ -123,10 +127,7 @@ export async function getJob(id: string): Promise<Job> {
   });
 }
 
-/**
- * Create job (requires Bearer token)
- * create endpoint may omit createdAt/updatedAt; return JobCreateResponse
- */
+/** Create job (JWT required) */
 export async function createJob(
   token: string,
   input: CreateJobInput
@@ -150,10 +151,7 @@ export async function createJob(
   });
 }
 
-/**
- * Candidate: create application (multipart)
- * Gateway expects: jobId, name, email, phone, note?, resume(file)
- */
+/** Candidate: create application (multipart) */
 export async function createApplication(args: {
   input: CreateApplicationInput;
   resume: File;
@@ -161,15 +159,11 @@ export async function createApplication(args: {
   const base = getApiBase();
   const validated = CreateApplicationInputSchema.parse(args.input);
 
-  if (!(args.resume instanceof File)) {
+  if (!(args.resume instanceof File))
     throw new Error("Resume file is required");
-  }
-  if (args.resume.size <= 0) {
-    throw new Error("Resume file is empty");
-  }
-  if (args.resume.size > 10 * 1024 * 1024) {
+  if (args.resume.size <= 0) throw new Error("Resume file is empty");
+  if (args.resume.size > 10 * 1024 * 1024)
     throw new Error("Resume file is too large (max 10MB)");
-  }
 
   const form = new FormData();
   form.append("jobId", validated.jobId);
@@ -187,7 +181,7 @@ export async function createApplication(args: {
   });
 }
 
-/** Candidate: status lookup by public token */
+/** Candidate: status lookup */
 export async function getApplicationStatus(
   token: string
 ): Promise<StatusLookup> {
@@ -196,5 +190,41 @@ export async function getApplicationStatus(
     url: `${base}/applications/status/${encodeURIComponent(token)}`,
     method: "GET",
     schema: StatusLookupSchema,
+  });
+}
+
+/** Recruiter: list applications for a job (backend route you implemented) */
+export async function recruiterListApplicationsForJob(args: {
+  token: string;
+  jobId: string;
+}): Promise<RecruiterApplication[]> {
+  const base = getApiBase();
+  return fetchJson({
+    url: `${base}/jobs/${encodeURIComponent(args.jobId)}/applications`,
+    method: "GET",
+    token: args.token,
+    schema: RecruiterApplicationsListSchema,
+  });
+}
+
+/** Recruiter: update application status */
+export async function recruiterUpdateApplicationStatus(args: {
+  token: string;
+  applicationId: string;
+  status: ApplicationStatus;
+}): Promise<RecruiterApplication> {
+  const base = getApiBase();
+  const body = UpdateApplicationStatusInputSchema.parse({
+    status: args.status,
+  });
+
+  return fetchJson({
+    url: `${base}/applications/${encodeURIComponent(
+      args.applicationId
+    )}/status`,
+    method: "PATCH",
+    token: args.token,
+    body,
+    schema: RecruiterApplicationSchema,
   });
 }
